@@ -74,7 +74,7 @@ Now head back to the 'EC2 Dashboard' and look for you EC2 instance name. Then si
 
 Upon completion, you should now have:
 
-- a t2.mcrio EC2 Kali Instance within the Lares VPC in us-east-1
+- a t2.mcrio EC2 Kali Instance within your VPC in us-east-1
 - 30gb of storage
 - 2 x custom SSH inbound rules
 - Kali Linux headless toolset (see the link below for more details)
