@@ -1,0 +1,63 @@
+AWSTemplateFormatVersion: '2010-09-09' # Do not change this line
+Description: Create an EC2 instance with Kali Linux AMI, t2.micro, and SSH inbound access in the Lares VPC.
+
+Resources:
+  CustomSSH:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security group for EC2 instance
+      VpcId: vpc-XXXXXXX # Add your AWS VPCId here - do not change
+      SecurityGroupIngress:
+        - CidrIp: xx.xx.xx.xx/32  # Replace with your desired IP address
+          IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+        - CidrIp: xx.xx.xx.xx/32 # Optional VPN IP address
+          IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+
+  MyEC2Instance:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: t2.micro # Instance size - Although t2.medium is recommended, only swap to it if needed
+      SecurityGroupIds:
+        - !Ref CustomSSH # Custom sec group name
+      SubnetId: subnet-XXXXXXXX  # Add your AWS existing VPCId here
+      KeyName: your-key-here  # Replace with your SSH key pair name - should already be in the AWS key vault
+      ImageId: 
+        Fn::FindInMap:
+          - AWSRegionArch2AMI
+          - Ref: "AWS::Region"
+          - AMIKali
+      BlockDeviceMappings:
+        - DeviceName: /dev/xvda
+          Ebs:
+            VolumeSize: 30  # Set storage size to 30GB, change to suit
+      UserData:
+        Fn::Base64: |
+            #!/bin/bash -xe
+            echo "h3llo haxXor"
+            sudo su
+            apt update && apt upgrade -y
+            DEBIAN_FRONTEND=noninteractive apt install kali-linux-headless -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold"
+            apt install seclists -y
+            echo " mi$chi3f m@nag3d"
+
+      Tags:
+        - Key: Name
+          Value: xxxxxx-Custom-Kali # Your custom name here
+        - Key: OS
+          Value: Kali Linux
+        - Key: OwnerContact
+          Value: "@xxxxx" # Enter your name here
+
+Mappings:
+  AWSRegionArch2AMI:
+    us-east-1:
+      AMIKali: ami-0eb546bea6ed49174  # Check this is still the latest version, if not replace with the latest Kali Linux AMI ID for us-east-1
+
+Outputs:
+  InstanceId:
+    Description: Instance ID of the newly created EC2 instance
+    Value: !Ref MyEC2Instance
